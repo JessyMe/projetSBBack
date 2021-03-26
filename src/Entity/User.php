@@ -73,15 +73,20 @@ class User implements UserInterface
 
     /**
      * @ORM\OneToMany(targetEntity=Training::class, mappedBy="owner", orphanRemoval=true)
-     * @Groups ({"user:read", "user:write"})
+     * @Groups ({"user:read"})
      */
     private $trainings;
 
     /**
      * @ORM\ManyToMany(targetEntity=Training::class, mappedBy="subscribers")
-     * @Groups ({"user:read", "user:write"})
+     * @Groups ({"user:read"})
      */
     private $trainingSubscriptions;
+
+    /**
+     * @ORM\Column(type="string", length=15, nullable=true)
+     */
+    private $phonenumber;
 
     public function __construct()
     {
@@ -254,6 +259,18 @@ class User implements UserInterface
         if ($this->trainingSubscriptions->removeElement($trainingSubscription)) {
             $trainingSubscription->removeSubscriber($this);
         }
+
+        return $this;
+    }
+
+    public function getPhonenumber(): ?string
+    {
+        return $this->phonenumber;
+    }
+
+    public function setPhonenumber(?string $phonenumber): self
+    {
+        $this->phonenumber = $phonenumber;
 
         return $this;
     }
