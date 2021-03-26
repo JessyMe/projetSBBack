@@ -8,14 +8,12 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
+    /*
     /**
      * @Route ("api/users", methods={"POST"})
      */
 
-    public function register(): Response
-    {
-
-    }
+/*
     /**
      * @Route("/user", name="user")
      */
