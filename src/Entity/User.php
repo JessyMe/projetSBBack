@@ -49,6 +49,10 @@ class User implements UserInterface
      * @var string The hashed password
      * @ORM\Column(type="string")
      * @Groups ({"user:write"})
+     * @Assert\Length(
+     *     min=8,
+     *     minMessage="Password too short"
+     * )
      */
     private $password;
 
@@ -56,18 +60,21 @@ class User implements UserInterface
      * @ORM\Column(type="string", length=255)
      * @Groups ({"user:read", "user:write"})
      * @Assert\NotBlank
+     *
      */
     private $username;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups ({"user:read", "user:write"})
+     * @Assert\NotBlank
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups ({"user:read", "user:write"})
+     * @Assert\NotBlank
      */
     private $surname;
 
