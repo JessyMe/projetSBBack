@@ -14,13 +14,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ApiResource (
- *
  *     normalizationContext={"groups"={"user:read"}},
  *     denormalizationContext={"groups"={"user:write"}},
  *     )
  * @ORM\Entity(repositoryClass=UserRepository::class)
- * @UniqueEntity(fields={"email"})
- * @UniqueEntity (fields={"username"})
+ * @UniqueEntity(
+ *     fields={"email"},
+ *     message="Cette adresse email est déjà utilisée")
+ * @UniqueEntity (fields={"username"},
+ *     message="Ce pseudonyme n'est plus disponible")
  */
 class User implements UserInterface
 {
