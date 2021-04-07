@@ -7,6 +7,7 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -14,8 +15,30 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ApiResource (
+ *     attributes={"security"="is_granted('ROLE_USER')"},
+ *     collectionOperations={
+            "get"={
+ *              "security"="is_granted('ROLE_ADMIN')",
+ *              "security_message"="Only admins can get the users list"
+ *          },
+ *          "post"
+ *     },
+ *     itemOperations={
+            "get" ={
+ *              "security"="is_granted('ROLE_USER')",
+ *              "security_message"="You must be logged in to see user's profile"
+ *          },
+ *          "put"={
+ *              "security"="is_granted('ROLE_ADMIN') or object.owner == user",
+ *              "security_message"="You must be logged in to update your profile"
+ *          },
+ *          "delete"={
+ *              "security"="is_granted('ROLE_ADMIN')",
+ *              "security_message"="You cannot delete a profile unless admin"
+ *          }
+ *     },
  *     normalizationContext={"groups"={"user:read"}},
- *     denormalizationContext={"groups"={"user:write"}},
+ *     denormalizationContext={"groups"={"user:write"}}
  *     )
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @UniqueEntity(
@@ -24,7 +47,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @UniqueEntity (fields={"username"},
  *     message="Ce pseudonyme n'est plus disponible")
  */
-class User implements UserInterface
+class User implements JWTUserInterface
 {
     /**
      * @ORM\Id
@@ -97,10 +120,26 @@ class User implements UserInterface
      */
     private $phonenumber;
 
-    public function __construct()
+    /*public function __construct()
     {
         $this->trainings = new ArrayCollection();
         $this->trainingSubscriptions = new ArrayCollection();
+    } */
+
+    public function __construct($username, array $roles, $email)
+    {
+        $this->username = $username;
+        $this->roles = $roles;
+        $this->email = $email;
+    }
+
+    public static function createFromPayload($username, array $payload)
+    {
+        return new self(
+            $username,
+            $payload['roles'], // Added by default
+            $payload['email']  // Custom
+        );
     }
 
     public function getId(): ?int
@@ -125,9 +164,9 @@ class User implements UserInterface
      *
      * @see UserInterface
      */
-    public function getUsername(): string
+    public function getUsername()
     {
-        return (string) $this->email;
+        return $this->email;
     }
 
     /**
@@ -282,5 +321,9 @@ class User implements UserInterface
         $this->phonenumber = $phonenumber;
 
         return $this;
+    }
+    public function __toString ()
+    {
+        return (string) $this->email;
     }
 }

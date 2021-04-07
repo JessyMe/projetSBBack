@@ -1,0 +1,9 @@
+parameters:
+  hash: $2y$10$Bkmj5SVyHQ41pvj9WZK2RO5f6IWpGFU5jXvf85dB/5YWrtopr2JHK
+
+App\Entity\User:
+  user_1:
+    __construct: ['jess', "['User']", 'jessy.mercer@gmail.com']
+    password: <{hash}>
+    name: 'mercer'
+    surname: 'jessy'
