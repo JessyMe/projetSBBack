@@ -17,25 +17,30 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ApiResource (
  *     attributes={"security"="is_granted('ROLE_USER')"},
  *     collectionOperations={
-            "get"={
+ *           "get"={
  *              "security"="is_granted('ROLE_ADMIN')",
  *              "security_message"="Only admins can get the users list",
  *              "path"="/secure/users"
  *          },
- *          "post"
+ *          "post"={
+ *              "path"="/secure/users"
+ *          }
  *     },
  *     itemOperations={
-            "get" ={
+ *           "get" ={
  *              "security"="is_granted('ROLE_USER')",
- *              "security_message"="You must be logged in to see user's profile"
+ *              "security_message"="You must be logged in to see user's profile",
+ *              "path"="/secure/users"
  *          },
  *          "put"={
  *              "security"="is_granted('ROLE_ADMIN') or object.owner == user",
- *              "security_message"="You must be logged in to update your profile"
+ *              "security_message"="You must be logged in to update your profile",
+ *              "path"="/secure/users"
  *          },
  *          "delete"={
  *              "security"="is_granted('ROLE_ADMIN')",
- *              "security_message"="You cannot delete a profile unless admin"
+ *              "security_message"="You cannot delete a profile unless admin",
+ *              "path"="/secure/users"
  *          }
  *     },
  *     normalizationContext={"groups"={"user:read"}},
@@ -122,17 +127,13 @@ class User implements JWTUserInterface
      */
     private $phonenumber;
 
-    /*public function __construct()
-    {
-        $this->trainings = new ArrayCollection();
-        $this->trainingSubscriptions = new ArrayCollection();
-    } */
-
     public function __construct($username, array $roles, $email)
     {
         $this->username = $username;
         $this->roles = $roles;
         $this->email = $email;
+        $this->trainings = new ArrayCollection();
+        $this->trainingSubscriptions = new ArrayCollection();
     }
 
     public static function createFromPayload($username, array $payload)
