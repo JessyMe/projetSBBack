@@ -19,7 +19,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     collectionOperations={
             "get"={
  *              "security"="is_granted('ROLE_ADMIN')",
- *              "security_message"="Only admins can get the users list"
+ *              "security_message"="Only admins can get the users list",
+ *              "path"="/secure/users"
  *          },
  *          "post"
  *     },
@@ -92,6 +93,7 @@ class User implements JWTUserInterface
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups ({"user:read", "user:write"})
+     * @groups ({"training:read"})
      * @Assert\NotBlank
      */
     private $name;
