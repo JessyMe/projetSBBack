@@ -15,32 +15,31 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ApiResource (
- *     attributes={"security"="is_granted('ROLE_USER')"},
  *     collectionOperations={
  *           "get"={
- *              "security"="is_granted('ROLE_ADMIN')",
- *              "security_message"="Only admins can get the users list",
+ *              "security"="is_granted('ROLE_USER')",
+ *              "security_message"="You must be logged In to see other member's profile",
  *              "path"="/secure/users"
  *          },
  *          "post"={
- *              "path"="/secure/users"
+ *              "path"="/users"
  *          }
  *     },
  *     itemOperations={
  *           "get" ={
  *              "security"="is_granted('ROLE_USER')",
  *              "security_message"="You must be logged in to see user's profile",
- *              "path"="/secure/users"
+ *              "path"="/secure/users/{id}.{_format}"
  *          },
  *          "put"={
- *              "security"="is_granted('ROLE_ADMIN') or object.owner == user",
+ *              "security"="is_granted('ROLE_USER') and object.owner == user",
  *              "security_message"="You must be logged in to update your profile",
- *              "path"="/secure/users"
+ *              "path"="/secure/users/{id}.{_format}"
  *          },
  *          "delete"={
  *              "security"="is_granted('ROLE_ADMIN')",
  *              "security_message"="You cannot delete a profile unless admin",
- *              "path"="/secure/users"
+ *              "path"="/secure/users/{id}.{_format}"
  *          }
  *     },
  *     normalizationContext={"groups"={"user:read"}},
@@ -79,13 +78,18 @@ class User implements JWTUserInterface
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
-     * @Groups ({"user:write"})
      * @Assert\Length(
      *     min=8,
      *     minMessage="Password too short"
      * )
      */
     private $password;
+
+    /**
+     * @Groups ({"user:write"})
+     */
+    private $plainPassword;
+
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -127,10 +131,10 @@ class User implements JWTUserInterface
      */
     private $phonenumber;
 
-    public function __construct($username, array $roles, $email)
+    public function __construct($username, $email)
     {
         $this->username = $username;
-        $this->roles = $roles;
+        $this->roles = ['User'];
         $this->email = $email;
         $this->trainings = new ArrayCollection();
         $this->trainingSubscriptions = new ArrayCollection();
@@ -223,7 +227,7 @@ class User implements JWTUserInterface
     public function eraseCredentials()
     {
         // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        $this->plainPassword = null;
     }
 
     public function setUsername(string $username): self
@@ -328,5 +332,18 @@ class User implements JWTUserInterface
     public function __toString ()
     {
         return (string) $this->email;
+    }
+
+
+    public function getPlainPassword() :?string
+    {
+        return $this->plainPassword;
+    }
+
+
+    public function setPlainPassword(string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+        return $this;
     }
 }

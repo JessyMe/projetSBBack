@@ -34,7 +34,7 @@ class AbstractTest extends ApiTestCase
         }
 
         $response = static::createClient()->request('POST', '/api/login', ['body' => $body ?: [
-            'username'=> 'user2@exemple.com',
+            'email'=> 'user2@exemple.com',
             'password' => 'Pa$$w0rd',
 
         ]]);
@@ -43,7 +43,22 @@ class AbstractTest extends ApiTestCase
         $data = json_decode($response->getContent());
         $this->token = $data->access_token;
 
+        dd($data);
         return $data->access_token;
     }
 
+
+    public function testLogin(): void
+    {
+        $client = self::createClient();
+        $client->request('POST', '/api/login', [
+            'headers' => ['Content-Type' => 'application/json'],
+            'json' => [
+                'email' => 'jessy.mercer@gmail.com',
+                'password' => 'password'
+            ],
+        ]);
+        $this->assertResponseIsSuccessful();
+
+    }
 }
