@@ -40,4 +40,13 @@ class AbstractUsersTest extends ApiTestCase
 
         $this->assertResponseStatusCodeSame(200);
     }
+
+    protected function createAndLogin (Client $client, string $email): User {
+
+       $user = $this->createUser($email);
+       $this->logIn($client, $email);
+
+       $this->assertResponseStatusCodeSame(200);
+       return $user;
+    }
 }

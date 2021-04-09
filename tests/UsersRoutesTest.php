@@ -9,7 +9,7 @@ use Hautelook\AliceBundle\PhpUnit\RefreshDatabaseTrait;
 class UsersRoutesTest extends AbstractUsersTest
 
 {
-    use RefreshDatabaseTrait;
+
 
     public function testCreateUserRoute()
     {
@@ -17,9 +17,9 @@ class UsersRoutesTest extends AbstractUsersTest
         $client->request('POST', '/api/users', [
             'headers' => ['Content-Type' => 'application/json'],
             'json' => [
-                "email" => "jessy5.mercer@hotmail.fr",
-                "password" => '$2y$10$Bkmj5SVyHQ41pvj9WZK2RO5f6IWpGFU5jXvf85dB/5YWrtopr2JHK',
-                "username" => "test5",
+                "email" => "jessy90.mercer@hotmail.fr",
+                "password" => 'password',
+                "username" => "test90",
                 "name" => "test",
                 "surname" => "test"
             ],
@@ -30,7 +30,11 @@ class UsersRoutesTest extends AbstractUsersTest
     public function testGetCollectionRoute() {
 
         $client = self::createClient();
-        $this->createUser('testagain@gmail.com');
-        $this->logIn($client, 'testagain@gmail.com');
+        $this->createAndLogin($client, 'pleaaaaase@gmail.com');
+        $client->request('GET', '/api/secure/users', [
+            'headers' => ['Content-Type' => 'application/json'],
+            'json' => []
+        ]);
+        $this->assertResponseIsSuccessful();
     }
 }

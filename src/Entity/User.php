@@ -11,6 +11,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -22,8 +23,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  *              "path"="/secure/users"
  *          },
  *          "post"={
- *              "path"="/users"
- *          }
+ *              "path"="/users",
+ *              "validation_groups"={"Default", "register"}
+ *          },
  *     },
  *     itemOperations={
  *           "get" ={
@@ -78,15 +80,17 @@ class User implements JWTUserInterface
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
-     * @Assert\Length(
-     *     min=8,
-     *     minMessage="Password too short"
-     * )
      */
     private $password;
 
     /**
-     * @Groups ({"user:write"})
+     * @Groups({"user:write"})
+     * @SerializedName("password")
+     * @Assert\NotBlank(groups={"register"})
+     * @Assert\Length(
+     *     min=8,
+     *     minMessage="Password too short"
+     * )
      */
     private $plainPassword;
 
@@ -326,7 +330,6 @@ class User implements JWTUserInterface
     public function setPhonenumber(?string $phonenumber): self
     {
         $this->phonenumber = $phonenumber;
-
         return $this;
     }
     public function __toString ()
