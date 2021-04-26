@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -11,36 +12,44 @@ use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Validator\Constraints as Assert;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 
 /**
  * @ApiResource (
- *     attributes={"security"="is_granted('ROLE_USER')"},
  *     collectionOperations={
-            "get"={
- *              "security"="is_granted('ROLE_ADMIN')",
- *              "security_message"="Only admins can get the users list",
+ *           "get"={
+ *              "security"="is_granted('ROLE_USER')",
+ *              "security_message"="You must be logged In to see other member's profile",
  *              "path"="/secure/users"
  *          },
- *          "post"
+ *          "post"={
+ *              "path"="/users",
+ *              "validation_groups"={"Default", "register"}
+ *          },
  *     },
  *     itemOperations={
-            "get" ={
+ *           "get" ={
  *              "security"="is_granted('ROLE_USER')",
- *              "security_message"="You must be logged in to see user's profile"
+ *              "security_message"="You must be logged in to see user's profile",
+ *              "path"="/secure/users/{id}.{_format}"
  *          },
  *          "put"={
- *              "security"="is_granted('ROLE_ADMIN') or object.owner == user",
- *              "security_message"="You must be logged in to update your profile"
+ *              "security"="is_granted('ROLE_USER') and object.owner == user",
+ *              "security_message"="You must be logged in to update your profile",
+ *              "path"="/secure/users/{id}.{_format}"
  *          },
  *          "delete"={
  *              "security"="is_granted('ROLE_ADMIN')",
- *              "security_message"="You cannot delete a profile unless admin"
+ *              "security_message"="You cannot delete a profile unless admin",
+ *              "path"="/secure/users/{id}.{_format}"
  *          }
  *     },
  *     normalizationContext={"groups"={"user:read"}},
  *     denormalizationContext={"groups"={"user:write"}}
  *     )
+ * @ApiFilter(SearchFilter::class, properties={"email":"exact"})
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @UniqueEntity(
  *     fields={"email"},
@@ -74,13 +83,20 @@ class User implements JWTUserInterface
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
-     * @Groups ({"user:write"})
+     */
+    private $password;
+
+    /**
+     * @Groups({"user:write"})
+     * @SerializedName("password")
+     * @Assert\NotBlank(groups={"register"})
      * @Assert\Length(
      *     min=8,
      *     minMessage="Password too short"
      * )
      */
-    private $password;
+    private $plainPassword;
+
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -93,7 +109,7 @@ class User implements JWTUserInterface
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups ({"user:read", "user:write"})
-     * @groups ({"training:read"})
+     * @Groups ({"training:read"})
      * @Assert\NotBlank
      */
     private $name;
@@ -122,20 +138,16 @@ class User implements JWTUserInterface
      */
     private $phonenumber;
 
-    /*public function __construct()
-    {
-        $this->trainings = new ArrayCollection();
-        $this->trainingSubscriptions = new ArrayCollection();
-    } */
-
-    public function __construct($username, array $roles, $email)
+    public function __construct($username, $email)
     {
         $this->username = $username;
-        $this->roles = $roles;
+        $this->roles = ['ROLE_USER'];
         $this->email = $email;
+        $this->trainings = new ArrayCollection();
+        $this->trainingSubscriptions = new ArrayCollection();
     }
 
-    public static function createFromPayload($username, array $payload)
+    public static function createFromPayload($username, array $payload): User
     {
         return new self(
             $username,
@@ -178,7 +190,7 @@ class User implements JWTUserInterface
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = 'User';
+        $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }
@@ -222,7 +234,7 @@ class User implements JWTUserInterface
     public function eraseCredentials()
     {
         // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        $this->plainPassword = null;
     }
 
     public function setUsername(string $username): self
@@ -321,11 +333,23 @@ class User implements JWTUserInterface
     public function setPhonenumber(?string $phonenumber): self
     {
         $this->phonenumber = $phonenumber;
-
         return $this;
     }
     public function __toString ()
     {
         return (string) $this->email;
+    }
+
+
+    public function getPlainPassword() :?string
+    {
+        return $this->plainPassword;
+    }
+
+
+    public function setPlainPassword(string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+        return $this;
     }
 }

@@ -4,27 +4,38 @@
 namespace App\Tests;
 
 
-use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\ApiTestCase;
 use App\Entity\User;
-use Hautelook\AliceBundle\PhpUnit\RefreshDatabaseTrait;
-use Hautelook\AliceBundle\PhpUnit\RefreshTestTrait;
-use phpDocumentor\Reflection\Types\Static_;
+use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 
-class UserResourceTest extends ApiTestCase
+
+class UserResourceTest extends AbstractTest
 {
-    use RefreshDatabaseTrait;
+    use ReloadDatabaseTrait;
+
 
     public function testGetCollection() : void
     {
-        $response = static::createClient()->request('GET', '/api/users');
+
+        $response = static::createClient()->request('GET', '/api/secure/users');
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
+        $this->assertJsonContains([
+            '@context' => '/api/contexts/User',
+            '@id'=> '/api/users',
+            '@type' => 'hydra:Collection',
+            'hydra:totalItems'=> 1,
+            'hydra:view'=> [
+                '@id'=> 'api/users/',
+                '@type'=> 'User',
+                'hydra:first'=> '',
+                'hydra:last' => '',
+                'hydra:next'=> '',
+            ],
+        ]);
+
+        $this->assertCount(1, $response->toArray()['hydra:member']);
+        $this->assertMatchesResourceCollectionJsonSchema(User::class);
     }
 
-    public function testCreateUser()
-    {
-        $client = self::createClient();
-        $this->assertResponseStatusCodeSame(401);
-    }
 
 }
