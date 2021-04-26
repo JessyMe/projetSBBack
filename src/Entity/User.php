@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -13,6 +14,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Validator\Constraints as Assert;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 
 /**
  * @ApiResource (
@@ -47,6 +49,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     normalizationContext={"groups"={"user:read"}},
  *     denormalizationContext={"groups"={"user:write"}}
  *     )
+ * @ApiFilter(SearchFilter::class, properties={"email":"exact"})
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @UniqueEntity(
  *     fields={"email"},
@@ -106,7 +109,7 @@ class User implements JWTUserInterface
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups ({"user:read", "user:write"})
-     * @groups ({"training:read"})
+     * @Groups ({"training:read"})
      * @Assert\NotBlank
      */
     private $name;
@@ -138,13 +141,13 @@ class User implements JWTUserInterface
     public function __construct($username, $email)
     {
         $this->username = $username;
-        $this->roles = ['User'];
+        $this->roles = ['ROLE_USER'];
         $this->email = $email;
         $this->trainings = new ArrayCollection();
         $this->trainingSubscriptions = new ArrayCollection();
     }
 
-    public static function createFromPayload($username, array $payload)
+    public static function createFromPayload($username, array $payload): User
     {
         return new self(
             $username,
@@ -187,7 +190,7 @@ class User implements JWTUserInterface
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = 'User';
+        $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }

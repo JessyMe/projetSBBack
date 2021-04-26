@@ -13,8 +13,6 @@ use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 
 class UsersTest extends AbstractUsersTest
 {
-
-
     public function testUpdateUserprofile()
     {
         $client = self::createClient();
